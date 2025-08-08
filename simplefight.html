@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      text-align: center;
+      margin-top: 30px;
+      font-family: Arial, sans-serif;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+    }
+
+    .side-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .side-label {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .player-box {
+      width: 150px;
+      height: 500px;
+      border: 2px solid black;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .char-button {
+      padding: 10px;
+      font-size: 14px;
+      background-color: lightgray;
+      border: 1px solid #555;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .char-button.selected {
+      background-color: #777;
+      color: white;
+    }
+
+    .square {
+      width: 500px;
+      height: 500px;
+      background-color: white;
+      border: 2px solid black;
+      position: relative;
+    }
+
+    .start-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: lightgreen;
+      border: 2px solid darkgreen;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .start-button:hover {
+      background-color: green;
+      color: white;
+    }
+
+    .character {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .char1 {
+      background-color: red;
+    }
+
+    .char2 {
+      background-color: blue;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title">simple fight</div>
+
+  <div class="container">
+    <!-- 1P 영역 -->
+    <div class="side-section">
+      <div class="side-label">1P 캐릭터 선택</div>
+      <div class="player-box" id="player1-box">
+        <button class="char-button">???</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+        <button class="char-button">캐릭터 C</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+        <button class="char-button">캐릭터 C</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+      </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div class="square" id="gameArea"></div>
+
+    <!-- 2P 영역 -->
+    <div class="side-section">
+      <div class="side-label">2P 캐릭터 선택</div>
+      <div class="player-box" id="player2-box">
+        <button class="char-button">???</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+        <button class="char-button">캐릭터 C</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+        <button class="char-button">캐릭터 C</button>
+        <button class="char-button">캐릭터 A</button>
+        <button class="char-button">캐릭터 B</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="start-button" onclick="startGame()">Start</button>
+
+  <script>
+    let selectedButtons = [];
+
+    document.querySelectorAll('.char-button').forEach(button => {
+      button.addEventListener('click', () => {
+        if (!button.classList.contains('selected')) {
+          const parent = button.parentElement;
+          const prevSelected = parent.querySelector('.char-button.selected');
+          if (prevSelected) prevSelected.classList.remove('selected');
+          button.classList.add('selected');
+        }
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'k' || e.key === 'K') {
+        document.querySelectorAll('.char-button.selected').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        selectedButtons = [];
+      }
+    });
+
+    let characters = [];
+
+    function startGame() {
+      const p1 = document.querySelector('#player1-box .char-button.selected');
+      const p2 = document.querySelector('#player2-box .char-button.selected');
+
+      if (!p1 || !p2) {
+        alert("1P와 2P 캐릭터를 모두 선택해주세요!");
+        return;
+      }
+
+      const gameArea = document.getElementById('gameArea');
+      gameArea.innerHTML = '';
+
+      const char1 = createCharacter('char1', 50, 50);
+      const char2 = createCharacter('char2', 410, 410);
+
+      gameArea.appendChild(char1.element);
+      gameArea.appendChild(char2.element);
+
+      characters = [char1, char2];
+
+      moveCharacters();
+    }
+
+    function createCharacter(className, x, y) {
+      const element = document.createElement('div');
+      element.classList.add('character', className);
+      element.style.left = `${x}px`;
+      element.style.top = `${y}px`;
+
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = 2;
+      const dx = Math.cos(angle) * speed;
+      const dy = Math.sin(angle) * speed;
+
+      return { element, x, y, dx, dy, radius: 20 };
+    }
+
+    function moveCharacters() {
+      const gameArea = document.getElementById('gameArea');
+      const areaSize = 500;
+
+      function update() {
+        characters.forEach(char => {
+          char.x += char.dx;
+          char.y += char.dy;
+
+          if (char.x <= 0 || char.x + 40 >= areaSize) char.dx *= -1;
+          if (char.y <= 0 || char.y + 40 >= areaSize) char.dy *= -1;
+
+          char.element.style.left = `${char.x}px`;
+          char.element.style.top = `${char.y}px`;
+        });
+
+        const [a, b] = characters;
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < a.radius + b.radius) {
+          a.dx *= -1; a.dy *= -1;
+          b.dx *= -1; b.dy *= -1;
+        }
+
+        requestAnimationFrame(update);
+      }
+
+      update();
+    }
+  </script>
+
+</body>
+</html>
